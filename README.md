@@ -1,5 +1,5 @@
 
-# Bayesian learning on parameters of the COVID-19
+# Estimation of parameters of the COVID-19 (SIR model)
 
 This repository allow estimation of parameters of the SIR and SEIR epidemic
 models.
