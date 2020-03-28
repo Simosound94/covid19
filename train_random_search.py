@@ -1,16 +1,12 @@
 
 import os
 import numpy as np
-import pandas as pd
-import matplotlib.pyplot as plt
-from matplotlib.patches import Rectangle
 
-
-from datetime import timedelta, datetime
 
 from data import data
 from models.SIRC import SIRC
 from models.SEIR import SEIR
+from predict_utils import predict
 
 # ==============================================================================
 #
@@ -203,106 +199,23 @@ def main(args):
     # ==========================================================================
     # Evaluate on Italy
     # ==========================================================================
-    def reject_outliers(data, m=1.):
-        """ Sets the value of outlayers to nan
-        Args:
-            data (np.array): the data from which to remove outlayers
-            m (float): threshold on outlayers as m * std_dev(data)
-        """
-
-        standardized_data = np.abs(data - np.mean(data, axis=0))
-        outlayer_threshold = m * np.std(data, axis=0)
-        outlayers = standardized_data > outlayer_threshold
-
-        # data[ outlayers ] = standardized_data[outlayers]
-        data[ outlayers ] = np.nan
-
-        print('nr of outlayers: ', np.sum(outlayers))
-        return data
 
     model.set_params(beta_mu=optimal_params['beta_mu'],
-                     gamma_mu=optimal_params['gamma_mu'],
-                     beta_rho=optimal_params['beta_rho'],
-                     gamma_rho=optimal_params['gamma_rho'])
+                    gamma_mu=optimal_params['gamma_mu'],
+                    beta_rho=optimal_params['beta_rho'],
+                    gamma_rho=optimal_params['gamma_rho'])
 
     COUNTRY = 'Italy'
     POPULATION = args.population
-
-    X, _, _ = data.getDataset(
-                           init_population = POPULATION,
-                           type=args.model.upper(), country=COUNTRY)
-    X = X[0,:,:] # first sample
-    # get the last day
-    S = X[-1, 0]
-    I = X[-1, 1]
-    R = X[-1, 2]
-    C = X[-1, 3]
-
-
-    # Average more predictions (models have bayesian params)
-    y_pred_accumulator = []
-    for _ in range(1000):
-        y_pred = model.predict(S, I, R, C, timesteps=args.predicted_days)
-        y_pred_accumulator.append(y_pred)
-
-    y_pred_accumulator = np.array(y_pred_accumulator)
-    y_pred_accumulator = reject_outliers(y_pred_accumulator)
-
-    # Max, Min, Mean ignoring NaNs (--> outlayers)
-    worst_case = np.nanmax(y_pred_accumulator, axis=0)
-    best_case = np.nanmin(y_pred_accumulator, axis=0)
-    average_case = np.nanmean(y_pred_accumulator, axis=0)
-
-    timeseries_best = np.concatenate([X, best_case], axis=0)
-    timeseries_worst = np.concatenate([X, worst_case], axis=0)
-    timeseries_average = np.concatenate([X, average_case], axis=0)
-
-
-    # Adding the population to the values
-    timeseries_best *= args.population
-    timeseries_worst *= args.population
-    timeseries_average *= args.population
-
-
-    # add predicted values to dates
-    current = dates[-1]
-    for i in range(args.predicted_days):
-        dates.append( current + timedelta(days = i+1))
-    dates = [d.strftime('%d/%m/%y') for d in dates]
-
-    plt.figure(figsize=(15,10))
-    plt.title('Italy - COVID-19')
-
-    # Plot average
-    plt.plot(timeseries_average[:,1], label='Infected',  color='orange')
-    plt.plot(timeseries_average[:,2], label='Recovered',  color='g')
-    plt.plot(timeseries_average[:,3], label='Casualties',  color='r')
-
-
-    # "Confidence interval"
-    x = np.arange(0, len(timeseries_best)) 
-    plt.fill_between(x, timeseries_best[:,1], timeseries_worst[:,1], color='orange', alpha=0.2)
-    plt.fill_between(x, timeseries_best[:,2], timeseries_worst[:,2], color='g', alpha=0.2)
-    plt.fill_between(x, timeseries_best[:,3], timeseries_worst[:,3], color='r', alpha=0.2)
+    predict(model, COUNTRY, POPULATION, args.predicted_days)
     
-    plt.xticks(x[::5], dates[::5], rotation=90)
-    # plt.ylim([-1, args.population+10])
-    plt.grid(True)
-    plt.legend()
-    plt.plot()
-    plt.savefig("Italy.png")
-    plt.show()
-
-    
-        
-
 
 if __name__ == "__main__":
     import argparse
 
     parser = argparse.ArgumentParser(description = "COVID-19 estimation of params")
     parser.add_argument('--loss', type=str, default='MAE', help='The loss type (MSE or MAE) [default: MSE]')
-    parser.add_argument('--model', type=str, default='SIRC', help='The loss type (SIRC or SEIR) [default: SIR]')
+    parser.add_argument('--model', type=str, default='SIRC', help='The loss type (SIRC or SEIR) [default: SIRC]')
     parser.add_argument('--train_on_country', type=str, default=None, help='The country to use to train the model \
         (None: all the contries) [default: None]')
     parser.add_argument('--population', type=int, default=100000, help='Population [default: 100k]')

@@ -60,10 +60,6 @@ def getDataset( init_population = None,
         population = init_population
 
 
-    # TODO: remove this
-    confirmed = confirmed[:,:-1]
-    casualties = casualties[:,:-1]
-
 
     if not (confirmed.shape == recovered.shape == casualties.shape):
         raise ValueError('Shape of confirmed {}, recovered {} and casualties {}'\

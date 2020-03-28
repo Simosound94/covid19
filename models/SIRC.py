@@ -15,6 +15,9 @@ class SIRC(object):
     def __init__(self):
         self.set_params()
 
+    def type(self):
+        return 'SIRC'
+
 
     def set_params(self, 
                 beta_mu   = None, gamma_mu  = None, delta_mu = None,
@@ -61,21 +64,18 @@ class SIRC(object):
         I = SIRC[1]
         R = SIRC[2]
         C = SIRC[3]
-        return list(self._step(S, I, R, C, return_deltas=True))
+        return list(self._step(S, I, R, C))
 
 
-    def _step(self, S, I, R, C, params = {}, return_deltas = False):
+    def _step(self, S, I, R, C, params = {}):
         """ Performs a step of the SEIR model
         Args:
             S,I,R,C (floats) Susceptibles, Infectuos, Recovered, Casualties
                              at timestep t
             params (dict) containing the 'gamma' and 'beta' parameters
-            return_deltas (bool): whether to return dS, dI, dR, dC 
-                                  instead of S,I,R,C
         Returns:
             S,I,R,C (floats) Susceptibles, Infectuos, Recovered, Casualties
-                             at timestep t + 1 (if return_deltas == False)
-                             dS, dI, dR, dC otherwise
+                             at timestep t + 1
 
         """
         nr_samples = (S.shape[0],) if len(S.shape) > 0 else ()
@@ -91,7 +91,7 @@ class SIRC(object):
             beta = params['beta']
             
         if 'delta' not in params:
-            delta = np.random.normal(self._delta_mu, self.delta_rho, size=nr_samples)
+            delta = np.random.normal(self._delta_mu, self._delta_rho, size=nr_samples)
         else:
             delta = params['delta']
 

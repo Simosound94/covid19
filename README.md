@@ -24,7 +24,12 @@ You will see something similar to
 ![Italy](/results/Italy.png)
 
 The repo allows also to estimate the parameters ot the epidemic models day by day
-```python estimate_params_day_by_day.py --train_on_country=Italy --population=60000000```
+```python estimate_params_day_by_day.py --train_on_country=Italy --population=60000000 --train_iters=30000 --predicted_days=60```
 You will see something similar to
 
+The parameters of the SIRC model on italy, the last `--predicted_days` are inferred through a linear regression of the last values
 ![Params of Italy](/results/Italy_params.png)
+
+The Infectuos / Recovered and Casualties, considering the parameters of the previous plot
+(note that the parameters vary each day)
+![Italy with day by day params](/results/Italy_day_by_day_params.png)

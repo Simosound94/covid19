@@ -16,6 +16,9 @@ class SEIR(object):
     def __init__(self):
         self.set_params()
 
+    def type(self):
+        return 'SEIR'
+
 
     def set_params(self, 
                 alpha_mu  = None,
