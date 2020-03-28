@@ -67,7 +67,7 @@ def getDataset( init_population = None,
 
     susceptibles = np.zeros(confirmed.shape) * np.nan
     exposed = np.zeros(confirmed.shape) * np.nan
-    infectous = confirmed
+    infectous = confirmed - (recovered + casualties)
 
     if type == 'SEIR':
         # Return the SEIR data
