@@ -176,12 +176,13 @@ def main(args):
 
     # fit Beta (that changes according to social distancing etc)
     # linear regression on the last computed params
-    DAYS_TO_INFER_PARAMS = 10
+    DAYS_TO_INFER_PARAMS = 20
     inferred_coeffs = np.polyfit(x = np.arange(0, DAYS_TO_INFER_PARAMS),
                    y = optimal_params['beta_mu'][-DAYS_TO_INFER_PARAMS:],
-                   deg = 1)
+                   deg = 1)    
  
-    x = np.arange(0, args.predicted_days)
+    # Get the values for the next days
+    x = np.arange(DAYS_TO_INFER_PARAMS, DAYS_TO_INFER_PARAMS+args.predicted_days)
     beta_mu = x*inferred_coeffs[0] + inferred_coeffs[1]
     beta_mu = np.clip(beta_mu, 0, np.inf)
 

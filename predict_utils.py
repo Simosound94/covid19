@@ -50,6 +50,7 @@ def predict(model, country, population, days_to_predict, params = None, std_dev=
     C = X[-1, 3]
 
     # Average more predictions (models have bayesian params)
+    # TODO: this procedure can be vectorized
     y_pred_accumulator = []
     for _ in range(1000):
 

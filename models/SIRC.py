@@ -53,9 +53,28 @@ class SIRC(object):
             'gamma_rho' : self._gamma_rho,
             'delta_mu' : self._delta_mu,
             'delta_rho' : self._delta_rho,}
+
+    def sample_from_params(self, nr_samples=1):
+        """ Sample from bayesian params of the network
+        Args:
+            nr_samples (int): nr of params to generate
+        Returns
+            dict containing all the params
+        """
+        beta = np.random.normal(self._beta_mu, self._beta_rho, size=nr_samples)
+        gamma = np.random.normal(self._gamma_mu, self._gamma_rho, size=nr_samples)
+        delta = np.random.normal(self._delta_mu, self._delta_rho, size=nr_samples)
+
+        if nr_samples == 1:
+            beta  = beta[0]
+            gamma = gamma[0]
+            delta = delta[0]
+
+        params = {'beta': beta, 'gamma': gamma, 'delta':delta}
+        return params
         
 
-    def step(self, time, SIRC):
+    def step(self, time, SIRC, params = {}):
         """ Performs a step of the SEIR model
             interface is compliant with
             https://docs.scipy.org/doc/scipy/reference/generated/scipy.integrate.solve_ivp.html
@@ -64,7 +83,7 @@ class SIRC(object):
         I = SIRC[1]
         R = SIRC[2]
         C = SIRC[3]
-        return list(self._step(S, I, R, C))
+        return list(self._step(S, I, R, C, params))
 
 
     def _step(self, S, I, R, C, params = {}):
@@ -132,16 +151,7 @@ class SIRC(object):
         nr_samples = (S.shape[0],) if len(S.shape) > 0 else ()
 
         # Extract a different param for each sample
-        beta = np.random.normal(self._beta_mu, self._beta_rho, size=nr_samples)
-        gamma = np.random.normal(self._gamma_mu, self._gamma_rho, size=nr_samples)
-        delta = np.random.normal(self._delta_mu, self._delta_rho, size=nr_samples)
-        if nr_samples == 1:
-            beta = beta[0]
-            gamma = gamma[0]
-            delta = delta[0]
-
-
-        params = {'beta': beta, 'gamma': gamma, 'delta':delta}
+        params = self.sample_from_params(nr_samples)
 
         for t in range(timesteps):
             S, I, R, C = self._step(S, I, R, C, params)
